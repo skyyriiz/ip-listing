@@ -1,0 +1,14 @@
+CREATE USER 'mike'@'localhost' IDENTIFIED BY 'jgldiff';
+GRANT ALL PRIVILEGES ON * . * TO 'mike'@'localhost';
+FLUSH PRIVILEGES;
+
+CREATE DATABASE ip;
+USE ip;
+
+CREATE TABLE ips (
+    id INT NOT NULL AUTO_INCREMENT,
+    ip VARCHAR(255) NOT NULL,
+    PRIMARY KEY (id)
+);
+
+exit;

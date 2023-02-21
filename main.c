@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
 
-    if(mysql_real_connect(conn, "localhost", "mike", "lolmdr123", "ip", 0, NULL, 0) == NULL) {
+    if(mysql_real_connect(conn, "localhost", "mike", "jgldiff", "ip", 0, NULL, 0) == NULL) {
         fprintf(stderr, "Connection failed");
         exit(1);
     }

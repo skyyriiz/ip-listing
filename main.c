@@ -10,6 +10,7 @@ void loadEnv(){
     while(fgets(buffer, sizeof(buffer), fp)){
         char *key = strtok(buffer, "=");
         char *value = strtok(NULL, "=");
+        value[strcspn(value, "\n")] = 0;
         setenv(key, value, 0);
     }
 
@@ -82,7 +83,6 @@ int main(int argc, char *argv[]) {
     bool loop = true;
 
     loadEnv();
-    printf("%s", getenv("DB_NAME"));
 
     MYSQL *conn = getDatabaseConnection();
     connectToDatabase(conn);

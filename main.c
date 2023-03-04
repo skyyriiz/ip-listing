@@ -3,6 +3,18 @@
 #include <mysql/mysql.h>
 #include <string.h>
 
+
+void loadEnv(){
+    FILE * fp = fopen(".env", "r");
+    char buffer[256];
+    while(fgets(buffer, sizeof(buffer), fp)){
+        char *key = strtok(buffer, "=");
+        char *value = strtok(NULL, "=");
+        setenv(key, value, 0);
+    }
+
+}
+
 MYSQL *getDatabaseConnection(){
     MYSQL *conn;
 
@@ -68,6 +80,9 @@ void insertIpToDatabase(char ip_address[]){
 int main(int argc, char *argv[]) {
     int choix;
     bool loop = true;
+
+    loadEnv();
+    printf("%s", getenv("DB_NAME"));
 
     MYSQL *conn = getDatabaseConnection();
     connectToDatabase(conn);

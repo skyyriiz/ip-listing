@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <mysql/mysql.h>
 #include <string.h>
+#include <unistd.h>
 
 
 void loadEnv(){
@@ -33,16 +34,15 @@ void connectToDatabase(MYSQL *connection){
     }
 }
 
-void displayIpAddresses(int format, const char* mask){
-    MYSQL *conn = getDatabaseConnection();
+void displayIpAddresses(int format, const char* mask, MYSQL *connection){
     if(strcmp(mask, "0") != 0){
         printf("Mask filtering");
     }else{
-        if (mysql_query(conn, "SELECT * FROM ips")) {
+        if (mysql_query(connection, "SELECT * FROM ips")) {
             fprintf(stderr, "Select failed");
             exit(1);
         }
-        MYSQL_RES *result = mysql_store_result(conn);
+        MYSQL_RES *result = mysql_store_result(connection);
 
         if (result == NULL) {
             fprintf(stderr, "Select failed");
@@ -54,6 +54,7 @@ void displayIpAddresses(int format, const char* mask){
         MYSQL_ROW row;
 
         system("clear");
+        printf("Voici votre liste d'adresse ip:\n");
         while ((row = mysql_fetch_row(result))) {
             for(int i = 0; i < num_fields; i++) {
                 printf("%s ", row[i] ? row[i] : "NULL");
@@ -65,14 +66,13 @@ void displayIpAddresses(int format, const char* mask){
     }
 }
 
-void insertIpToDatabase(char ip_address[]){
-    MYSQL *conn = getDatabaseConnection();
-    char buf[1024] = {};
+void insertIpToDatabase(char ip_address[], MYSQL *connection){
+    char buf[512] = {};
     char query_string[] = {
             "INSERT INTO ips(ip) VALUES(%s)"
     };
     sprintf(buf, query_string, ip_address);
-    if (mysql_query(conn, buf)) {
+    if (mysql_query(connection, buf)) {
         fprintf(stderr, "Insertion failed");
         exit(1);
     }
@@ -102,10 +102,11 @@ int main(int argc, char *argv[]) {
         switch(choix) {
             case 1:
                 system("clear");
-                printf("Veuillez saisir une adresse ip:\n");
-                char ip[20];
+                printf("Veuillez saisir une adresse ip:");
+                char ip[64];
                 scanf("%s", ip);
-                insertIpToDatabase(ip);
+                ip[strcspn(ip, "\n")] = 0;
+                insertIpToDatabase(ip, conn);
 
                 printf("Insertion réussie\n");
                 break;
@@ -135,8 +136,10 @@ int main(int argc, char *argv[]) {
                 char choix2[15];
                 scanf("%s", choix2);
 
-                displayIpAddresses(choix, choix2);
+                displayIpAddresses(choix, choix2, conn);
 
+                sleep(2);
+                //WIP scanf pour savoir quand quitter le menu d'affichage
                 break;
             case 4:
                 system("clear");

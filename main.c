@@ -84,11 +84,8 @@ void createMask(char ip_address[]){
 void displayIpAddresses(int format, const char* mask, MYSQL *connection){
     int y = 0;
     int x=0;
-
-    if(strcmp(mask, "0") != 0){
-        printf("Mask filtering");
-    }else{
-        if (mysql_query(connection, "SELECT * FROM ips")) {
+    
+    if (mysql_query(connection, "SELECT * FROM ips")) {
             fprintf(stderr, "Select failed");
             exit(1);
         }
@@ -366,7 +363,7 @@ void displayIpAddresses(int format, const char* mask, MYSQL *connection){
 
 
         mysql_free_result(result);
-    }
+	
 }
 
 void insertIpToDatabase(char ip_address[], MYSQL *connection){

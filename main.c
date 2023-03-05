@@ -38,9 +38,7 @@ void connectToDatabase(MYSQL *connection){
 
 
 void displayIpAddresses(int format, const char* mask, MYSQL *connection){
-    int part;
     int y = 0;
-    char stock[200];
     int x=0;
 
     if(strcmp(mask, "0") != 0){
@@ -71,51 +69,45 @@ void displayIpAddresses(int format, const char* mask, MYSQL *connection){
                         printf("%s ", row[i] ? row[i] : "NULL");
 
                         if (strlen(row[i]) > 2) {
-                            // Adresse IP à convertir
                             char ip[16];
                             strcpy(ip, "192.168.200.1");
 
-                            // Conversion de l'adresse IP en binaire
                             int octet[4];
                             sscanf(ip, "%d.%d.%d.%d", &octet[0], &octet[1], &octet[2], &octet[3]);
-                            char binaryIP[35];
-                            int i, j, k, decimal, remainder;
+                            char binaries[35];
+                            int i, j, k, decimal, reste;
                             for(i=0; i<4; i++)
                             {
                                 decimal = octet[i];
                                 k = 0;
                                 while(k < 8)
                                 {
-                                    remainder = decimal % 2;
+                                    reste = decimal % 2;
                                     decimal = decimal / 2;
-                                    binaryIP[i*8+7-k] = remainder + '0';
+                                    binaries[i*8+7-k] = reste + '0';
                                     k++;
                                 }
                             }
-                            binaryIP[32] = '\0';
+                            binaries[32] = '\0';
                             
-                            // Ajout des points entre les octets binaires
                             j = 0;
                             for(i=0; i<32; i++)
                             {
                                 if(i != 0 && i % 8 == 0)
                                 {
-                                    binaryIP[i+j] = '.';
+                                    binaries[i+j] = '.';
                                     j++;
                                 }
                             }
-                            binaryIP[33] = '\0';
+                            binaries[33] = '\0';
                             
-                            // Affichage de l'adresse IP binaire
-                            printf("-> %s\n", binaryIP);
-                        }   
-                                    
+                            printf("-> %s\n", binaries);
+                        }
                     }
                     printf("\n");
                 }
                 break;
             case 2:
-                
                 while ((row = mysql_fetch_row(result))) {
                     for(int i = 0; i < num_fields; i++) {
                         printf("%s ", row[i] ? row[i] : "NULL");

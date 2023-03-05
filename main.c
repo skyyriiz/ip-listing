@@ -87,6 +87,8 @@ char** str_split(char* a_str, const char a_delim)
 void displayIpAddresses(int format, const char* mask, MYSQL *connection){
     int part;
     int y = 0;
+    char stock[200];
+    int x=0;
 
     if(strcmp(mask, "0") != 0){
         printf("Mask filtering");
@@ -116,61 +118,92 @@ void displayIpAddresses(int format, const char* mask, MYSQL *connection){
                         printf("%s ", row[i] ? row[i] : "NULL");
 
                         if (strlen(row[i]) > 2) {
-                            char **parts = str_split(row[i], '.');
-                            char finals;
-                            char *stock[200];
-                            char temp;
-                            if (parts)
+                            // Adresse IP à convertir
+                            char ip[16];
+                            strcpy(ip, "192.168.200.1");
+
+                            // Conversion de l'adresse IP en binaire
+                            int octet[4];
+                            sscanf(ip, "%d.%d.%d.%d", &octet[0], &octet[1], &octet[2], &octet[3]);
+                            char binaryIP[35];
+                            int i, j, k, decimal, remainder;
+                            for(i=0; i<4; i++)
                             {
-                                int i;
-                                for (i = 0; *(parts + i); i++)
+                                decimal = octet[i];
+                                k = 0;
+                                while(k < 8)
                                 {
-                                    part = atoi(*(parts + i));
-                                    printf("%d", part);
-
-                                
-
-                                    stock[y] = *(parts + i);
-                                    y++;
+                                    remainder = decimal % 2;
+                                    decimal = decimal / 2;
+                                    binaryIP[i*8+7-k] = remainder + '0';
+                                    k++;
                                 }
-                                
-                                free(parts);
                             }
+                            binaryIP[32] = '\0';
                             
+                            // Ajout des points entre les octets binaires
+                            j = 0;
+                            for(i=0; i<32; i++)
+                            {
+                                if(i != 0 && i % 8 == 0)
+                                {
+                                    binaryIP[i+j] = '.';
+                                    j++;
+                                }
+                            }
+                            binaryIP[33] = '\0';
                             
+                            // Affichage de l'adresse IP binaire
+                            printf("-> %s\n", binaryIP);
                         }   
                                     
                     }
                     printf("\n");
                 }
-                mysql_free_result(result);
                 break;
             case 2:
+                
                 while ((row = mysql_fetch_row(result))) {
                     for(int i = 0; i < num_fields; i++) {
                         printf("%s ", row[i] ? row[i] : "NULL");
-
+                        
                         if (strlen(row[i]) > 2) {
-                            char **parts = str_split(row[i], '.');
-                            char finals;
-                            if (parts)
-                            {
-                                int i;
-                                for (i = 0; *(parts + i); i++)
-                                {
-                                    int part = atoi(*(parts + i));
-                                    printf("%X", part);
+                            char ip[20]; 
+                            strcpy(ip, row[i]);
+                            int numbers[4];
+
+                            char *token = strtok(ip, ".");
+                            int i = 0;
+
+                            while (token != NULL) {
+                                numbers[i] = atoi(token);
+                                token = strtok(NULL, ".");
+                                i++;
+                            }
+
+                            for(int j = 0; j < 4; j++) {
+                                if (j == 0) {
+                                    printf("-> %02X.", numbers[j]);
+                                } else
+                                if(j >= 3) {
+                                    printf("%02X", numbers[j]);
+                                } else {
+                                    printf("%02X.", numbers[j]);
                                 }
-                                free(parts);
                             }
                         }
+                        
                     }
                     printf("\n");
                 }
-                mysql_free_result(result);
                 break;
             case 3:
-                printf("Vous avez choisi d'afficher les adresses IP en décimal");
+                while ((row = mysql_fetch_row(result))) {
+                    for(int i = 0; i < num_fields; i++) {
+                        printf("%s ", row[i] ? row[i] : "NULL");
+                    }
+                    printf("\n");
+                }
                 break;
             case 4:
                 printf("Vous avez choisi de quitter");
@@ -180,12 +213,7 @@ void displayIpAddresses(int format, const char* mask, MYSQL *connection){
                 break;
         }
 
-        while ((row = mysql_fetch_row(result))) {
-            for(int i = 0; i < num_fields; i++) {
-                printf("%s ", row[i] ? row[i] : "NULL");
-            }
-            printf("\n");
-        }
+        
 
         mysql_free_result(result);
     }
@@ -222,6 +250,7 @@ int main(int argc, char *argv[]) {
         printf("4. Quitter\n");
 
         fflush(stdin);
+        printf("\n\n>");
         scanf("%d", &choix);
 
         switch(choix) {

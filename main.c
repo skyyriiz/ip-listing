@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <mysql/mysql.h>
 #include <string.h>
-#include <unistd.h>
+#include <stdbool.h>
 
 
 void loadEnv(){

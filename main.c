@@ -3,6 +3,8 @@
 #include <mysql/mysql.h>
 #include <string.h>
 #include <unistd.h>
+#include <limits.h>
+#include <assert.h>
 
 
 void loadEnv(){
@@ -34,7 +36,58 @@ void connectToDatabase(MYSQL *connection){
     }
 }
 
+char** str_split(char* a_str, const char a_delim)
+{
+    char** result    = 0;
+    size_t count     = 0;
+    char* tmp        = a_str;
+    char* last_comma = 0;
+    char delim[2];
+    delim[0] = a_delim;
+    delim[1] = 0;
+
+    /* Count how many elements will be extracted. */
+    while (*tmp)
+    {
+        if (a_delim == *tmp)
+        {
+            count++;
+            last_comma = tmp;
+        }
+        tmp++;
+    }
+
+    /* Add space for trailing token. */
+    count += last_comma < (a_str + strlen(a_str) - 1);
+
+    /* Add space for terminating null string so caller
+       knows where the list of returned strings ends. */
+    count++;
+
+    result = malloc(sizeof(char*) * count);
+
+    if (result)
+    {
+        size_t idx  = 0;
+        char* token = strtok(a_str, delim);
+
+        while (token)
+        {
+            assert(idx < count);
+            *(result + idx++) = strdup(token);
+            token = strtok(0, delim);
+        }
+        assert(idx == count - 1);
+        *(result + idx) = 0;
+    }
+
+    return result;
+}
+
 void displayIpAddresses(int format, const char* mask, MYSQL *connection){
+    int part;
+    int y = 0;
+
     if(strcmp(mask, "0") != 0){
         printf("Mask filtering");
     }else{
@@ -55,6 +108,78 @@ void displayIpAddresses(int format, const char* mask, MYSQL *connection){
 
         system("clear");
         printf("Voici votre liste d'adresse ip:\n");
+        
+        switch(format){
+            case 1:
+                while ((row = mysql_fetch_row(result))) {
+                    for(int i = 0; i < num_fields; i++) {
+                        printf("%s ", row[i] ? row[i] : "NULL");
+
+                        if (strlen(row[i]) > 2) {
+                            char **parts = str_split(row[i], '.');
+                            char finals;
+                            char *stock[200];
+                            char temp;
+                            if (parts)
+                            {
+                                int i;
+                                for (i = 0; *(parts + i); i++)
+                                {
+                                    part = atoi(*(parts + i));
+                                    printf("%d", part);
+
+                                
+
+                                    stock[y] = *(parts + i);
+                                    y++;
+                                }
+                                
+                                free(parts);
+                            }
+                            
+                            
+                        }   
+                                    
+                    }
+                    printf("\n");
+                }
+                mysql_free_result(result);
+                break;
+            case 2:
+                while ((row = mysql_fetch_row(result))) {
+                    for(int i = 0; i < num_fields; i++) {
+                        printf("%s ", row[i] ? row[i] : "NULL");
+
+                        if (strlen(row[i]) > 2) {
+                            char **parts = str_split(row[i], '.');
+                            char finals;
+                            if (parts)
+                            {
+                                int i;
+                                for (i = 0; *(parts + i); i++)
+                                {
+                                    int part = atoi(*(parts + i));
+                                    printf("%X", part);
+                                }
+                                free(parts);
+                            }
+                        }
+                    }
+                    printf("\n");
+                }
+                mysql_free_result(result);
+                break;
+            case 3:
+                printf("Vous avez choisi d'afficher les adresses IP en décimal");
+                break;
+            case 4:
+                printf("Vous avez choisi de quitter");
+                break;
+            default:
+                printf("Choix invalide");
+                break;
+        }
+
         while ((row = mysql_fetch_row(result))) {
             for(int i = 0; i < num_fields; i++) {
                 printf("%s ", row[i] ? row[i] : "NULL");
@@ -125,9 +250,9 @@ int main(int argc, char *argv[]) {
                 printf("4. Quitter\n");
 
 
-
+                int choix1;
                 fflush(stdin);
-                scanf("%d", &choix);
+                scanf("%d", &choix1);
 
                 system("clear");
                 printf("Insérez un masque pour filtrer (ou 0 si aucun):");
@@ -136,9 +261,9 @@ int main(int argc, char *argv[]) {
                 char choix2[15];
                 scanf("%s", choix2);
 
-                displayIpAddresses(choix, choix2, conn);
+                displayIpAddresses(choix1, choix2, conn);
 
-                sleep(2);
+                sleep(10);
                 //WIP scanf pour savoir quand quitter le menu d'affichage
                 break;
             case 4:

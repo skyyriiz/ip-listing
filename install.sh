@@ -23,6 +23,12 @@ echo "Database created"
 echo "USE ip; CREATE TABLE ips (id INT NOT NULL AUTO_INCREMENT, ip VARCHAR(255) NOT NULL, PRIMARY KEY (id));" | sudo mysql
 echo "Table created"
 
+echo "USE ip; INSERT INTO ips (ip) VALUES ('192.168.200.1');" | sudo mysql
+echo "USE ip; INSERT INTO ips (ip) VALUES ('192.168.200.2');" | sudo mysql
+echo "USE ip; INSERT INTO ips (ip) VALUES ('192.168.220.1');" | sudo mysql
+echo "USE ip; INSERT INTO ips (ip) VALUES ('192.168.220.2');" | sudo mysql
+echo "Data inserted"
+
 echo "exit;" | sudo mysql
 echo "Exit"
 

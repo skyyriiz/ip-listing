@@ -3,6 +3,9 @@
 #include <mysql/mysql.h>
 #include <string.h>
 #include <stdbool.h>
+#include <unistd.h>
+#include <limits.h>
+#include <assert.h>
 
 
 void loadEnv(){
@@ -35,6 +38,9 @@ void connectToDatabase(MYSQL *connection){
 }
 
 void displayIpAddresses(int format, const char* mask, MYSQL *connection){
+    int y = 0;
+    int x=0;
+
     if(strcmp(mask, "0") != 0){
         printf("Mask filtering");
     }else{
@@ -55,12 +61,104 @@ void displayIpAddresses(int format, const char* mask, MYSQL *connection){
 
         system("clear");
         printf("Voici votre liste d'adresse ip:\n");
-        while ((row = mysql_fetch_row(result))) {
-            for(int i = 0; i < num_fields; i++) {
-                printf("%s ", row[i] ? row[i] : "NULL");
-            }
-            printf("\n");
+
+        switch(format){
+            case 1:
+                while ((row = mysql_fetch_row(result))) {
+                    for(int i = 0; i < num_fields; i++) {
+                        printf("%s ", row[i] ? row[i] : "NULL");
+
+                        if (strlen(row[i]) > 2) {
+                            char ip[16];
+                            strcpy(ip, "192.168.200.1");
+
+                            int octet[4];
+                            sscanf(ip, "%d.%d.%d.%d", &octet[0], &octet[1], &octet[2], &octet[3]);
+                            char binaries[35];
+                            int i, j, k, decimal, reste;
+                            for(i=0; i<4; i++)
+                            {
+                                decimal = octet[i];
+                                k = 0;
+                                while(k < 8)
+                                {
+                                    reste = decimal % 2;
+                                    decimal = decimal / 2;
+                                    binaries[i*8+7-k] = reste + '0';
+                                    k++;
+                                }
+                            }
+                            binaries[32] = '\0';
+
+                            j = 0;
+                            for(i=0; i<32; i++)
+                            {
+                                if(i != 0 && i % 8 == 0)
+                                {
+                                    binaries[i+j] = '.';
+                                    j++;
+                                }
+                            }
+                            binaries[33] = '\0';
+
+                            printf("-> %s\n", binaries);
+                        }
+                    }
+                    printf("\n");
+                }
+                break;
+            case 2:
+                while ((row = mysql_fetch_row(result))) {
+                    for(int i = 0; i < num_fields; i++) {
+                        printf("%s ", row[i] ? row[i] : "NULL");
+
+                        if (strlen(row[i]) > 2) {
+                            char ip[20];
+                            strcpy(ip, row[i]);
+                            int numbers[4];
+
+                            char *token = strtok(ip, ".");
+                            int i = 0;
+
+                            while (token != NULL) {
+                                numbers[i] = atoi(token);
+                                token = strtok(NULL, ".");
+                                i++;
+                            }
+
+                            for(int j = 0; j < 4; j++) {
+                                if (j == 0) {
+                                    printf("-> %02X.", numbers[j]);
+                                } else
+                                if(j >= 3) {
+                                    printf("%02X", numbers[j]);
+                                } else {
+                                    printf("%02X.", numbers[j]);
+                                }
+                            }
+                        }
+
+                    }
+                    printf("\n");
+                }
+                break;
+            case 3:
+                while ((row = mysql_fetch_row(result))) {
+                    for(int i = 0; i < num_fields; i++) {
+                        printf("%s ", row[i] ? row[i] : "NULL");
+                    }
+                    printf("\n");
+                }
+                break;
+            case 4:
+                printf("Vous avez choisi de quitter");
+                break;
+            default:
+                printf("Choix invalide");
+                break;
         }
+
+
 
         mysql_free_result(result);
     }
@@ -126,7 +224,7 @@ void menuDeleteIpFromDatabase(int temp_id, MYSQL *connection){
     scanf("%d", &temp_id);
     deleteIpFromDatabase(temp_id, connection);
     system("clear");
-    printf("L'adresse a bien été supprimée, retour au menu principal...");
+    printf("L'adresse a bien été supprimée, retour au menu principal...\n");
 }
 
 int main(int argc, char *argv[]) {

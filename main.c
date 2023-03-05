@@ -3,6 +3,8 @@
 #include <mysql/mysql.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdbool.h>
+
 
 
 void loadEnv(){
@@ -78,16 +80,52 @@ void insertIpToDatabase(char ip_address[], MYSQL *connection){
     }
 }
 
+void TypeIP(MYSQL *connection){
+    char buf[512] = {};
+    int Database_ID_Addr; 
+    printf("Select l'ID que vous voulez voir \n");
+    scanf("%d", &Database_ID_Addr);
+    char GetIP[] = {
+            "Select ip from ips where id = %d"
+    };
+    sprintf(buf, GetIP, Database_ID_Addr);
+    if (mysql_query(connection, buf)) {
+        fprintf(stderr, "Insertion failed");
+        exit(1);
+    }
+    int First_Octet = atoi (strtok ( buf, "." ));
+    int Second_Octet = atoi (strtok ( NULL, "." ));
+    printf("%d", First_Octet);
+    printf("%d", Second_Octet);
+    if(First_Octet ==10){
+	printf("this IP is private");
+    }
+    if(First_Octet ==172){
+	if(Second_Octet >= 0 && Second_Octet <= 31){
+    			printf("this IP is private");
+    		}else{
+    			printf("this IP is public");
+    		}
+    }
+    if(First_Octet ==168){
+	if(Second_Octet >= 0 && Second_Octet <= 31){
+    		printf("this IP is private");
+    	}else{
+    		printf("this IP is public");
+    	}
+    }
+}
+
 int main(int argc, char *argv[]) {
     int choix;
-    bool loop = true;
+    bool loop = 1;
 
     loadEnv();
 
     MYSQL *conn = getDatabaseConnection();
     connectToDatabase(conn);
 
-    while(loop != false){
+    while(loop != 0){
         system("clear");
         printf("Bienvenue dans le répertoire d\'adresses IP\n");
         printf("Faites votre choix:\n");
@@ -137,14 +175,13 @@ int main(int argc, char *argv[]) {
                 scanf("%s", choix2);
 
                 displayIpAddresses(choix, choix2, conn);
-
-                sleep(2);
+                
                 //WIP scanf pour savoir quand quitter le menu d'affichage
                 break;
             case 4:
                 system("clear");
                 printf("Vous avez choisi de quitter\n");
-                loop = false;
+                loop = 1;
                 break;
             default:
                 system("clear");

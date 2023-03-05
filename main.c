@@ -37,6 +37,50 @@ void connectToDatabase(MYSQL *connection){
     }
 }
 
+void createMask(char ip_address[]){
+    char ip[20];
+    strcpy(ip, ip_address);
+
+    int a, b, c, d;
+    if (sscanf(ip, "%d.%d.%d.%d", &a, &b, &c, &d) != 4) {
+        printf("Mauavaise adresse ip");
+        exit(1);
+    }
+
+    char class;
+    if (a >= 1 && a <= 126) {
+        class = 'A';
+    } else if (a >= 128 && a <= 191) {
+        class = 'B';
+    } else if (a >= 192 && a <= 223) {
+        class = 'C';
+    } else if (a >= 224 && a <= 239) {
+        class = 'D';
+    } else if (a >= 240 && a <= 255) {
+        class = 'E';
+    } else {
+        printf("Mauavaise adresse ip");
+        exit(1);
+    }
+
+    char mask[100];
+    if(class == 'A'){
+        strcpy(mask, "255.0.0.0");
+    }else if(class == 'B'){
+        strcpy(mask, "255.255.0.0");
+    }else if(class == 'C'){
+        strcpy(mask, "255.255.255.0");
+    }else if(class == 'D'){
+        strcpy(mask, " ");
+    }else if(class == 'E'){
+        strcpy(mask, " ");
+    }
+
+    printf("%d", class);
+    printf("%s", mask);
+
+}
+
 void displayIpAddresses(int format, const char* mask, MYSQL *connection){
     int y = 0;
     int x=0;
@@ -66,11 +110,11 @@ void displayIpAddresses(int format, const char* mask, MYSQL *connection){
             case 1:
                 while ((row = mysql_fetch_row(result))) {
                     for(int i = 0; i < num_fields; i++) {
-                        printf("%s ", row[i] ? row[i] : "NULL");
+                        printf("%s | ", row[i] ? row[i] : "NULL");
 
                         if (strlen(row[i]) > 2) {
                             char ip[16];
-                            strcpy(ip, "192.168.200.1");
+                            strcpy(ip, row[i]);
 
                             int octet[4];
                             sscanf(ip, "%d.%d.%d.%d", &octet[0], &octet[1], &octet[2], &octet[3]);
@@ -101,7 +145,58 @@ void displayIpAddresses(int format, const char* mask, MYSQL *connection){
                             }
                             binaries[33] = '\0';
 
-                            printf("-> %s\n", binaries);
+                            printf("%s", binaries);
+
+                            int a, b, c, d;
+                            if (sscanf(ip, "%d.%d.%d.%d", &a, &b, &c, &d) != 4) {
+                                printf("Mauavaise adresse ip");
+                                exit(1);
+                            }
+
+                            char class;
+                            if (a >= 1 && a <= 126) {
+                                class = 'A';
+                            } else if (a >= 128 && a <= 191) {
+                                class = 'B';
+                            } else if (a >= 192 && a <= 223) {
+                                class = 'C';
+                            } else if (a >= 224 && a <= 239) {
+                                class = 'D';
+                            } else if (a >= 240 && a <= 255) {
+                                class = 'E';
+                            } else {
+                                printf("Mauavaise adresse ip");
+                                exit(1);
+                            }
+
+                            char mask[100];
+                            if(class == 'A'){
+                                strcpy(mask, "255.0.0.0");
+                            }else if(class == 'B'){
+                                strcpy(mask, "255.255.0.0");
+                            }else if(class == 'C'){
+                                strcpy(mask, "255.255.255.0");
+                            }else if(class == 'D'){
+                                strcpy(mask, " ");
+                            }else if(class == 'E'){
+                                strcpy(mask, " ");
+                            }
+                            
+                            char cha[100] = "IP publique";
+                            if(a == 172){
+                                if(b >= 16 && b <= 31){
+                                    strcpy(cha, "IP privee");
+                                }
+                            } else if (a == 10){
+                                strcpy(cha, "IP privee");
+                            } else if (a == 192 && b == 168){
+                                strcpy(cha, "IP privee");
+                            }
+
+
+                            printf(" | Classe %c", class);
+                            printf(" | %s", mask);
+                            printf(" | %s\n", cha);
                         }
                     }
                     printf("\n");
@@ -110,9 +205,12 @@ void displayIpAddresses(int format, const char* mask, MYSQL *connection){
             case 2:
                 while ((row = mysql_fetch_row(result))) {
                     for(int i = 0; i < num_fields; i++) {
-                        printf("%s ", row[i] ? row[i] : "NULL");
+                        printf("%s | ", row[i] ? row[i] : "NULL");
 
                         if (strlen(row[i]) > 2) {
+                            char newIP[20];
+                            strcpy(newIP, row[i]);
+
                             char ip[20];
                             strcpy(ip, row[i]);
                             int numbers[4];
@@ -128,7 +226,7 @@ void displayIpAddresses(int format, const char* mask, MYSQL *connection){
 
                             for(int j = 0; j < 4; j++) {
                                 if (j == 0) {
-                                    printf("-> %02X.", numbers[j]);
+                                    printf("%02X.", numbers[j]);
                                 } else
                                 if(j >= 3) {
                                     printf("%02X", numbers[j]);
@@ -136,6 +234,57 @@ void displayIpAddresses(int format, const char* mask, MYSQL *connection){
                                     printf("%02X.", numbers[j]);
                                 }
                             }
+
+                            int a, b, c, d;
+                            if (sscanf(newIP, "%d.%d.%d.%d", &a, &b, &c, &d) != 4) {
+                                printf("Mauavaise adresse ip");
+                                exit(1);
+                            }
+
+                            char class;
+                            if (a >= 1 && a <= 126) {
+                                class = 'A';
+                            } else if (a >= 128 && a <= 191) {
+                                class = 'B';
+                            } else if (a >= 192 && a <= 223) {
+                                class = 'C';
+                            } else if (a >= 224 && a <= 239) {
+                                class = 'D';
+                            } else if (a >= 240 && a <= 255) {
+                                class = 'E';
+                            } else {
+                                printf("Mauavaise adresse ip");
+                                exit(1);
+                            }
+
+                            char mask[100];
+                            if(class == 'A'){
+                                strcpy(mask, "255.0.0.0");
+                            }else if(class == 'B'){
+                                strcpy(mask, "255.255.0.0");
+                            }else if(class == 'C'){
+                                strcpy(mask, "255.255.255.0");
+                            }else if(class == 'D'){
+                                strcpy(mask, " ");
+                            }else if(class == 'E'){
+                                strcpy(mask, " ");
+                            }
+                            
+                            char cha[100] = "IP publique";
+                            if(a == 172){
+                                if(b >= 16 && b <= 31){
+                                    strcpy(cha, "IP privee");
+                                }
+                            } else if (a == 10){
+                                strcpy(cha, "IP privee");
+                            } else if (a == 192 && b == 168){
+                                strcpy(cha, "IP privee");
+                            }
+
+
+                            printf(" | Classe %c", class);
+                            printf(" | %s", mask);
+                            printf(" | %s\n", cha);
                         }
 
                     }
@@ -145,8 +294,64 @@ void displayIpAddresses(int format, const char* mask, MYSQL *connection){
             case 3:
                 while ((row = mysql_fetch_row(result))) {
                     for(int i = 0; i < num_fields; i++) {
-                        printf("%s ", row[i] ? row[i] : "NULL");
+                        printf("%s | ", row[i] ? row[i] : "NULL");
+                        if (strlen(row[i]) > 2) {
+                            char ip[20];
+                            strcpy(ip, row[i]);
+                            int a, b, c, d;
+                            if (sscanf(ip, "%d.%d.%d.%d", &a, &b, &c, &d) != 4) {
+                                printf("Mauavaise adresse ip");
+                                exit(1);
+                            }
+
+                            char class;
+                            if (a >= 1 && a <= 126) {
+                                class = 'A';
+                            } else if (a >= 128 && a <= 191) {
+                                class = 'B';
+                            } else if (a >= 192 && a <= 223) {
+                                class = 'C';
+                            } else if (a >= 224 && a <= 239) {
+                                class = 'D';
+                            } else if (a >= 240 && a <= 255) {
+                                class = 'E';
+                            } else {
+                                printf("Mauavaise adresse ip");
+                                exit(1);
+                            }
+
+                            char mask[100];
+                            if(class == 'A'){
+                                strcpy(mask, "255.0.0.0");
+                            }else if(class == 'B'){
+                                strcpy(mask, "255.255.0.0");
+                            }else if(class == 'C'){
+                                strcpy(mask, "255.255.255.0");
+                            }else if(class == 'D'){
+                                strcpy(mask, " ");
+                            }else if(class == 'E'){
+                                strcpy(mask, " ");
+                            }
+                            
+                            char cha[100] = "IP publique";
+                            if(a == 172){
+                                if(b >= 16 && b <= 31){
+                                    strcpy(cha, "IP privee");
+                                }
+                            } else if (a == 10){
+                                strcpy(cha, "IP privee");
+                            } else if (a == 192 && b == 168){
+                                strcpy(cha, "IP privee");
+                            }
+
+
+                            printf("Classe %c", class);
+                            printf(" | %s", mask);
+                            printf(" | %s\n", cha);
+                        }
+                    
                     }
+
                     printf("\n");
                 }
                 break;

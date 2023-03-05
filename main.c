@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <mysql/mysql.h>
 #include <string.h>
+#include <unistd.h>
 #include <stdbool.h>
 
 
@@ -129,6 +130,43 @@ void menuDeleteIpFromDatabase(int temp_id, MYSQL *connection){
     printf("L'adresse a bien été supprimée, retour au menu principal...");
 }
 
+void TypeIP(MYSQL *connection){
+    char buf[512] = {};
+    int Database_ID_Addr; 
+    printf("Select l'ID que vous voulez voir \n");
+    scanf("%d", &Database_ID_Addr);
+    char GetIP[] = {
+            "Select ip from ips where id = %d"
+    };
+    sprintf(buf, GetIP, Database_ID_Addr);
+    if (mysql_query(connection, buf)) {
+        fprintf(stderr, "Insertion failed");
+        exit(1);
+    }
+    int First_Octet = atoi (strtok ( buf, "." ));
+    int Second_Octet = atoi (strtok ( NULL, "." ));
+    printf("%d", First_Octet);
+    printf("%d", Second_Octet);
+    if(First_Octet ==10){
+	printf("this IP is private");
+    }
+    if(First_Octet ==172){
+	if(Second_Octet >= 0 && Second_Octet <= 31){
+    			printf("this IP is private");
+    		}else{
+    			printf("this IP is public");
+    		}
+    }
+    if(First_Octet ==168){
+	if(Second_Octet >= 0 && Second_Octet <= 31){
+    		printf("this IP is private");
+    	}else{
+    		printf("this IP is public");
+    	}
+    }
+}
+
+
 int main(int argc, char *argv[]) {
     int choix;
     bool loop = true;
@@ -196,7 +234,8 @@ int main(int argc, char *argv[]) {
                 printf("\n\n\nQue voulez vous faire ?\n");
                 printf("0. Revenir au menu principal\n");
                 printf("1. Modifier une adresse ip\n");
-                printf("2. Supprimer une adresse ip");
+                printf("2. Supprimer une adresse ip\n");
+                printf("3. Type d'IP\n");
                 printf("\n\n>");
                 fflush(stdin);
                 scanf("%d", &choix);
@@ -209,7 +248,9 @@ int main(int argc, char *argv[]) {
                     case 2:
                         menuDeleteIpFromDatabase(choix, conn);
                         break;
-
+		    case 3:
+                        TypeIP(conn);
+                        break;
                     default:
                         system("clear");
                         printf("Choix invalide\n");
